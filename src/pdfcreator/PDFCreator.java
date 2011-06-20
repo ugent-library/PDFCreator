@@ -6,6 +6,8 @@ package pdfcreator;
 import com.itextpdf.text.Document;
 import com.itextpdf.text.Image;
 import com.itextpdf.text.Rectangle;
+import com.itextpdf.text.pdf.PdfPCell;
+import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfWriter;
 import gnu.getopt.Getopt;
 import java.io.FileOutputStream;
@@ -17,10 +19,15 @@ import java.util.List;
  * @author hochsten
  */
 public class PDFCreator {
+    public static int fistPageAlign  = 1;
+    public static int otherPageAlign = -1;
+    public static int lastPageAlign  = -1;
+
     public static int MAX_PIXELS  = 3000;
     public static boolean verbose = false;
     public static String out = "/dev/stdout";
 
+    @SuppressWarnings("static-access")
     protected void createPdf(String filename, String[] images) throws Exception {
         Document doc = new Document();
         PdfWriter writer = PdfWriter.getInstance(doc, new FileOutputStream(filename));
@@ -35,18 +42,27 @@ public class PDFCreator {
         doc.open();
         doc.addCreationDate();
         doc.addCreator("PDFCreator by Unviversiteitsbibliotheek Gent");
-        
+
         for (int i = 0 ; i < images.length ; i++) {
             verbose("Processing: " + images[i]);
 
-            Image img = Image.getInstance(images[i]);
-
+            Image img = Image.getInstance(images[i]);     
             img.scaleToFit(size.getWidth(), size.getHeight());
+
+            // Switch the alignment of book pages based on the pageNumber
+            if (i == 0) {
+                img.setAlignment(fistPageAlign == 1 ? img.ALIGN_RIGHT : img.ALIGN_LEFT);
+            }
+            else if (i == images.length - 1) {
+                img.setAlignment(lastPageAlign == 1 ? img.ALIGN_RIGHT : img.ALIGN_LEFT);
+            }
+            else {
+                img.setAlignment(otherPageAlign == 1 ? img.ALIGN_RIGHT : img.ALIGN_LEFT);
+            }
 
             doc.setPageSize(size);
             doc.setMargins(0, 0, 0, 0);
             doc.newPage();
-
             doc.add(img);
         }
         
@@ -57,14 +73,11 @@ public class PDFCreator {
         float w = r.getWidth();
         float h = r.getHeight();
 
-        if (w < maxpixels && h < maxpixels) {
+        if (w < maxpixels) {
             return r;
         }
-        else if (w >= h) {
-            return  new Rectangle((float) maxpixels , h * maxpixels / w);
-        }
         else {
-            return new Rectangle(w * maxpixels / h , (float) maxpixels);
+            return  new Rectangle((float) maxpixels , h * maxpixels / w);
         }
     }
 
