@@ -1,0 +1,14 @@
+PDFCreator
+
+Creates a PDF/A file from a list of images.
+
+Usage:
+
+  cd dist
+  ./pdfcreator -v -o test.pdf /tmp/*.tif
+
+Options:
+
+  -v  verbose
+  -o  output file
+  -p  maximum number of pixels on either axis
