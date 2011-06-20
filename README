@@ -1,6 +1,8 @@
 PDFCreator
 
-Creates a PDF/A file from a list of images.
+Creates a PDF/A file from a list of images. This code is used by
+Ghent University Library to create PDF files out of scans from
+old manuscripts.
 
 Usage:
 
