@@ -13,6 +13,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -146,6 +148,8 @@ public class PDFCreator {
             }
         }
 
+        Collections.sort(images);
+        
         return (String []) images.toArray(new String[] {});
     }
 
