@@ -28,6 +28,8 @@ public class PDFCreator {
     public static String includeFile = null;
     public static String excludeFile = null;
     public static int MAX_PIXELS  = 3000;
+    public static String pdfxConformance = "NONE";
+    public static String pdfVersion = "1.4";
     public static boolean verbose = false;
     public static String out = "/dev/stdout";
 
@@ -35,8 +37,32 @@ public class PDFCreator {
     protected void createPdf(String filename, String[] images) throws Exception {
         Document doc = new Document();
         PdfWriter writer = PdfWriter.getInstance(doc, new FileOutputStream(filename));
-        
-        writer.setPDFXConformance(PdfWriter.PDFX1A2001);
+
+        if (pdfxConformance.equals("PDFA1B")) {
+            writer.setPDFXConformance(PdfWriter.PDFA1B);
+        }
+        else if (pdfxConformance.equals("PDFA1A")) {
+            writer.setPDFXConformance(PdfWriter.PDFA1A);
+        }
+        else {
+            writer.setPDFXConformance(PdfWriter.PDFXNONE);
+        }
+
+        if (pdfVersion.equals("1.4")) {
+            writer.setPdfVersion(PdfWriter.VERSION_1_4);
+        }
+        else if (pdfVersion.equals("1.5")) {
+            writer.setPdfVersion(PdfWriter.VERSION_1_5);
+        }
+        else if (pdfVersion.equals("1.6")) {
+            writer.setPdfVersion(PdfWriter.VERSION_1_6);
+        }
+        else if (pdfVersion.equals("1.7")) {
+            writer.setPdfVersion(PdfWriter.VERSION_1_7);
+        }
+        else {
+            writer.setPdfVersion(PdfWriter.VERSION_1_4);
+        }
         
         Rectangle size = rescale(
                                 maxImageSize(images) ,
@@ -46,6 +72,7 @@ public class PDFCreator {
         verbose(filename + ": open");
 
         doc.open();
+        
         doc.addCreationDate();
         doc.addCreator("PDFCreator by Unviversiteitsbibliotheek Gent");
 
@@ -71,6 +98,8 @@ public class PDFCreator {
             doc.newPage();
             doc.add(img);
         }
+
+        writer.createXmpMetadata();
         
         doc.close();
 
@@ -159,12 +188,23 @@ public class PDFCreator {
     public static void main(String[] args) throws Exception {
         boolean batch = false;
 
-        Getopt g = new Getopt("PDFCreator", args, "be:i:o:p:v");
+        Getopt g = new Getopt("PDFCreator", args, "a:be:i:o:p:vx:");
            
         int c;
         String arg;
         while ((c = g.getopt()) != -1) {
              switch(c) {
+                 case 'a':
+                    if ("1A".equals(g.getOptarg())) {
+                        pdfxConformance = "PDFA1A";
+                    }
+                    else if ("1B".equals(g.getOptarg())) {
+                        pdfxConformance = "PDFA1B";
+                    }
+                    else {
+                        pdfxConformance = "PDFA1A";
+                    }
+                    break;
                  case 'b':
                     batch = true;
                     break;
@@ -183,6 +223,12 @@ public class PDFCreator {
                  case 'v':
                     verbose = true;
                     break;
+                 case 'x':
+                     pdfVersion = g.getOptarg();
+                     break;
+                 default:
+                     usage();
+                     break;
                }
         }
         

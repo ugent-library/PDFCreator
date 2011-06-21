@@ -25,7 +25,9 @@ Usage:
 
 Options:
 
-  -v  verbose
-  -b  batch
-  -o  output file
-  -p  maximum number of pixels on either axis
+  -v           - verbose
+  -a 1A|1B     - PDF/A compliance
+  -b           - batchmode
+  -o file      - output file
+  -p pixels    - maximum number of pixels on either axis
+  -x version   - PDF verson ("1.4" -> "1.7")
