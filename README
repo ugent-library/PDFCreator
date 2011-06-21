@@ -1,16 +1,31 @@
 PDFCreator
 
 Creates a PDF/A file from a list of images. This code is used by
-Ghent University Library to create PDF files out of scans from
+Ghent University Library to create PDF files out of TIF scans from
 old manuscripts.
 
 Usage:
 
   cd dist
+
+  # Create a PDF out of a list of images
   ./pdfcreator -v -o test.pdf /tmp/*.tif
+
+  # Create a PDF using a batch input
+  ./pdfcreator -v -b < input.txt
+
+  where input.txt is a space delimited file containing an output file
+  and an source image directory for every line.
+
+  E.g.
+
+  my_file.pdf  /data/files/my_images
+  my_file2.pdf /data/files/my_images2
+
 
 Options:
 
   -v  verbose
+  -b  batch
   -o  output file
   -p  maximum number of pixels on either axis

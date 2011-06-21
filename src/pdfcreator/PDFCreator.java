@@ -6,11 +6,12 @@ package pdfcreator;
 import com.itextpdf.text.Document;
 import com.itextpdf.text.Image;
 import com.itextpdf.text.Rectangle;
-import com.itextpdf.text.pdf.PdfPCell;
-import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfWriter;
 import gnu.getopt.Getopt;
+import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileOutputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,19 +33,21 @@ public class PDFCreator {
         Document doc = new Document();
         PdfWriter writer = PdfWriter.getInstance(doc, new FileOutputStream(filename));
         
-        writer.setPDFXConformance(PdfWriter.PDFA1A);
+        writer.setPDFXConformance(PdfWriter.PDFX1A2001);
         
         Rectangle size = rescale(
                                 maxImageSize(images) ,
                                 MAX_PIXELS
                                 );
-    
+
+        verbose(filename + ": open");
+
         doc.open();
         doc.addCreationDate();
         doc.addCreator("PDFCreator by Unviversiteitsbibliotheek Gent");
 
         for (int i = 0 ; i < images.length ; i++) {
-            verbose("Processing: " + images[i]);
+            verbose(" +" + images[i]);
 
             Image img = Image.getInstance(images[i]);     
             img.scaleToFit(size.getWidth(), size.getHeight());
@@ -67,6 +70,8 @@ public class PDFCreator {
         }
         
         doc.close();
+
+        verbose(filename + ": close");
     }
 
     protected Rectangle rescale(Rectangle r, int maxpixels) {
@@ -106,20 +111,49 @@ public class PDFCreator {
     }
 
     protected static void usage() {
-        System.err.println("usage: PDFCreator [-v] [-o file] [-p MAX_PIXELS] file [file...]");
+        System.err.println("usage:");
+        System.err.println();
+        System.err.println(" PDFCreator [-v] [-o file] [-p MAX_PIXELS] file [file...]");
+        System.err.println(" PDFCreator [-v] [-b] [-p MAX_PIXELS] < input");
+        System.err.println();
+        System.err.println("where input like");
+        System.err.println();
+        System.err.println("[output file] [image directory]");
+        System.err.println("[output file] [image directory]");
+        System.err.println("...");
         System.exit(1);
+    }
+
+    protected static String[] scanDirectory(String filename) {
+        List images = new ArrayList();
+
+        File f = new File(filename);
+        File[] list = f.listFiles();
+
+        for (int i = 0 ; i < list.length ; i++) {
+            if (list[i].isFile() && ! list[i].isHidden()) {
+                images.add(list[i].getAbsolutePath());
+            }
+        }
+
+        return (String []) images.toArray(new String[] {});
     }
 
     /**
      * @param args the command line arguments
      */
     public static void main(String[] args) throws Exception {
-        Getopt g = new Getopt("PDFCreator", args, "do:p:v");
+        boolean batch = false;
+
+        Getopt g = new Getopt("PDFCreator", args, "bo:p:v");
            
         int c;
         String arg;
         while ((c = g.getopt()) != -1) {
              switch(c) {
+                 case 'b':
+                    batch = true;
+                    break;
                  case 'o':
                     out = g.getOptarg();
                     break;
@@ -132,17 +166,35 @@ public class PDFCreator {
                }
         }
         
-        if (g.getOptind() == args.length) {
+        if (g.getOptind() == args.length && ! batch) {
             usage();
         }
 
-        List images = new ArrayList();
+        if (batch) {
+            BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
 
-        for (int i = g.getOptind(); i < args.length ; i++) {
-            images.add(args[i]);
+            PDFCreator m = new PDFCreator();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (line.length() == 0 || line.matches("\\s*") || line.matches("\\s*#.*")) {
+                    continue;
+                }
+
+                String[] parts  = line.split("\\s+");
+                String[] images = scanDirectory(parts[1]);
+
+                m.createPdf(parts[0], images);
+            }
         }
+        else {
+            List images = new ArrayList();
 
-        PDFCreator m = new PDFCreator();
-        m.createPdf(out, (String[]) images.toArray(new String[] {}));
+            for (int i = g.getOptind(); i < args.length ; i++) {
+                images.add(args[i]);
+            }
+
+            PDFCreator m = new PDFCreator();
+            m.createPdf(out, (String[]) images.toArray(new String[] {}));
+        }
     }
 }
