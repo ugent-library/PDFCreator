@@ -23,7 +23,8 @@ public class PDFCreator {
     public static int fistPageAlign  = 1;
     public static int otherPageAlign = -1;
     public static int lastPageAlign  = -1;
-
+    public static String includeFile = null;
+    public static String excludeFile = null;
     public static int MAX_PIXELS  = 3000;
     public static boolean verbose = false;
     public static String out = "/dev/stdout";
@@ -114,7 +115,7 @@ public class PDFCreator {
         System.err.println("usage:");
         System.err.println();
         System.err.println(" PDFCreator [-v] [-o file] [-p MAX_PIXELS] file [file...]");
-        System.err.println(" PDFCreator [-v] [-b] [-p MAX_PIXELS] < input");
+        System.err.println(" PDFCreator [-v] [-b] [-i regex] [-e regex] [-p MAX_PIXELS] < input");
         System.err.println();
         System.err.println("where input like");
         System.err.println();
@@ -124,13 +125,22 @@ public class PDFCreator {
         System.exit(1);
     }
 
-    protected static String[] scanDirectory(String filename) {
+    protected static String[] scanDirectory(String filename, String include, String exclude) {
         List images = new ArrayList();
 
         File f = new File(filename);
         File[] list = f.listFiles();
 
         for (int i = 0 ; i < list.length ; i++) {
+            
+            if (include != null && ! list[i].getName().matches(include)) {
+                continue;
+            }
+            
+            if (exclude != null && list[i].getName().matches(exclude)) {
+                continue;
+            }
+
             if (list[i].isFile() && ! list[i].isHidden()) {
                 images.add(list[i].getAbsolutePath());
             }
@@ -145,7 +155,7 @@ public class PDFCreator {
     public static void main(String[] args) throws Exception {
         boolean batch = false;
 
-        Getopt g = new Getopt("PDFCreator", args, "bo:p:v");
+        Getopt g = new Getopt("PDFCreator", args, "be:i:o:p:v");
            
         int c;
         String arg;
@@ -153,6 +163,12 @@ public class PDFCreator {
              switch(c) {
                  case 'b':
                     batch = true;
+                    break;
+                 case 'e':
+                    excludeFile = g.getOptarg();
+                    break;
+                 case 'i':
+                    includeFile = g.getOptarg();
                     break;
                  case 'o':
                     out = g.getOptarg();
@@ -181,7 +197,7 @@ public class PDFCreator {
                 }
 
                 String[] parts  = line.split("\\s+");
-                String[] images = scanDirectory(parts[1]);
+                String[] images = scanDirectory(parts[1], includeFile, excludeFile);
 
                 m.createPdf(parts[0], images);
             }

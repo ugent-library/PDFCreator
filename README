@@ -12,7 +12,7 @@ Usage:
   ./pdfcreator -v -o test.pdf /tmp/*.tif
 
   # Create a PDF using a batch input
-  ./pdfcreator -v -b < input.txt
+  ./pdfcreator -v -b -i ".*tif" -e ".*pdf" < input.txt
 
   where input.txt is a space delimited file containing an output file
   and an source image directory for every line.
