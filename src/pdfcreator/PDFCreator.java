@@ -21,11 +21,15 @@ package pdfcreator;
 import com.itextpdf.text.Document;
 import com.itextpdf.text.Image;
 import com.itextpdf.text.Rectangle;
+import com.itextpdf.text.pdf.ICC_Profile;
 import com.itextpdf.text.pdf.PdfWriter;
 import gnu.getopt.Getopt;
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -37,12 +41,14 @@ import java.util.List;
  */
 public class PDFCreator {
     public static final int PDF_SPACE_UNIT = 72;
-    public static String  align = "rrr";
+    public static String  colorProfile = "pdfcreator/sRGB.profile";
+    public static String  creator = "PDFCreator by Unviversiteitsbibliotheek Gent";
+    public static String  align = "rll";
     public static String  includeFile = null;
     public static String  excludeFile = null;
     public static float   width  = 0;
     public static float   height = 0;
-    public static String  pdfxConformance = "NONE";
+    public static String  pdfxConformance = "PDFA1B";
     public static String  pdfVersion = "1.4";
     public static boolean verbose = false;
     public static String  out = "/dev/stdout";
@@ -51,7 +57,7 @@ public class PDFCreator {
     protected void createPdf(String filename, String[] images) throws Exception {
         Document doc = new Document();
         PdfWriter writer = PdfWriter.getInstance(doc, new FileOutputStream(filename));
-        
+
         if (pdfxConformance.equals("PDFA1B")) {
             writer.setPDFXConformance(PdfWriter.PDFA1B);
         }
@@ -82,10 +88,15 @@ public class PDFCreator {
 
         verbose(filename + ": open");
 
+        // Set pageSize and margins before opening the document
+        // to make them active on the first page
+        doc.setPageSize(size);
+        doc.setMargins(0, 0, 0, 0);
+
         doc.open();
         
         doc.addCreationDate();
-        doc.addCreator("PDFCreator by Unviversiteitsbibliotheek Gent");
+        doc.addCreator(creator);
 
         for (int i = 0 ; i < images.length ; i++) {
             verbose(" +" + images[i]);
@@ -104,17 +115,40 @@ public class PDFCreator {
                 img.setAlignment(align.charAt(2) == 'r' ? img.ALIGN_RIGHT : img.ALIGN_LEFT);
             }
 
-            doc.setPageSize(size);
-            doc.setMargins(0, 0, 0, 0);
-            doc.newPage();
             doc.add(img);
+
+            doc.newPage();
         }
 
+        ICC_Profile icc = ICC_Profile.getInstance(getColorProfile());
+        writer.setOutputIntents("Custom", "", "http://www.color.org", "sRGB IEC61966-2.1", icc);
+        
         writer.createXmpMetadata();
         
         doc.close();
 
         verbose(filename + ": close");
+    }
+
+    protected byte[] getColorProfile() throws IOException {
+        InputStream in = this.getClass().getClassLoader().getResourceAsStream(colorProfile);
+
+        if (in == null) {
+            throw new IOException("No " + colorProfile + " found");
+        }
+        
+        ByteArrayOutputStream bas = new ByteArrayOutputStream();
+
+        byte[] buffer = new byte[1024];
+        int n = 0;
+        
+        while ((n = in.read(buffer)) != -1 ) {
+            bas.write(buffer, 0, n);
+        }
+
+        in.close();
+
+        return bas.toByteArray();
     }
 
     // Rescale to a specified maximum width and height in inches
@@ -188,18 +222,18 @@ public class PDFCreator {
         System.err.println();
         System.err.println("options:");
         System.err.println();
-        System.err.println("  -v           - verbose\n" +
-                           "  -a 1A|1B     - PDF/A compliance\n" +
-                           "  -b           - batchmode\n" +
-                           "  -i regex     - include files [batchmode]\n" +
-                           "  -e regex     - exclude files [batchmode]\n" +
-                           "  -o file      - output file\n" +
-                           "  -w #         - width in inches\n" +
-                           "  -h #         - height in inches\n" +
-                           "  -r rll       - alignment of first page, next pages and last page\n" +
-                           "                 as 3-character code. 'r' = right, 'l' = left.\n" +
-                           "                 default: rll\n" +
-                           "  -x version   - PDF verson (\"1.4\" -> \"1.7\")\n");
+        System.err.println("  -v            - verbose\n" +
+                           "  -a 1A|1B|NONE - PDF/A compliance\n" +
+                           "  -b            - batchmode\n" +
+                           "  -i regex      - include files [batchmode]\n" +
+                           "  -e regex      - exclude files [batchmode]\n" +
+                           "  -o file       - output file\n" +
+                           "  -w #          - width in inches\n" +
+                           "  -h #          - height in inches\n" +
+                           "  -r rll        - alignment of first page, next pages and last page\n" +
+                           "                  as 3-character code. 'r' = right, 'l' = left.\n" +
+                           "                  default: rll\n" +
+                           "  -x version    - PDF verson (\"1.4\" -> \"1.7\")\n");
         System.exit(1);
     }
 
@@ -249,7 +283,7 @@ public class PDFCreator {
                         pdfxConformance = "PDFA1B";
                     }
                     else {
-                        pdfxConformance = "PDFA1A";
+                        pdfxConformance = "NONE";
                     }
                     break;
                  case 'b':
