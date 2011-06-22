@@ -36,11 +36,12 @@ import java.util.List;
  * @author hochsten
  */
 public class PDFCreator {
-    public static String  align = "rll";
+    public static final int PDF_SPACE_UNIT = 72;
+    public static String  align = "rrr";
     public static String  includeFile = null;
     public static String  excludeFile = null;
-    public static int     width = 0;
-    public static int     height = 0;
+    public static float   width  = 11.7f;
+    public static float   height = 8.3f;
     public static String  pdfxConformance = "NONE";
     public static String  pdfVersion = "1.4";
     public static boolean verbose = false;
@@ -77,11 +78,7 @@ public class PDFCreator {
             writer.setPdfVersion(PdfWriter.VERSION_1_4);
         }
 
-        Rectangle size = maxImageSize(images);
-
-        if (width > 0 || height > 0) {
-             size = rescale(size, width, height);
-        }
+        Rectangle size = rescale(maxImageSize(images), width, height);
 
         verbose(filename + ": open");
 
@@ -120,7 +117,7 @@ public class PDFCreator {
         verbose(filename + ": close");
     }
 
-    protected Rectangle rescale(Rectangle r, int width, int height) {
+    protected Rectangle rescale(Rectangle r, float width, float height) {
         float w = r.getWidth();
         float h = r.getHeight();
 
@@ -128,16 +125,16 @@ public class PDFCreator {
             return r;
         }
         else if (width == 0) {
-            return new Rectangle(w * height/ h , (float) height);
+            return new Rectangle(PDF_SPACE_UNIT * w * height/ h , PDF_SPACE_UNIT *height);
         }
         else if (height == 0) {
-            return new Rectangle((float) width , h * width / w);
+            return new Rectangle(PDF_SPACE_UNIT * width , PDF_SPACE_UNIT * h * width / w);
         }
         else if (width > height) {
-            return new Rectangle((float) width , h * width / w);
+            return new Rectangle(PDF_SPACE_UNIT * w * height/ h , PDF_SPACE_UNIT *height);
         }
         else {
-            return new Rectangle((float) width , h * width / w);
+            return new Rectangle(PDF_SPACE_UNIT * width , PDF_SPACE_UNIT * h * width / w);
         }
     }
 
@@ -185,8 +182,8 @@ public class PDFCreator {
                            "  -i regex     - include files [batchmode]\n" +
                            "  -e regex     - exclude files [batchmode]\n" +
                            "  -o file      - output file\n" +
-                           "  -w pixels    - maximum pixel width\n" +
-                           "  -h pixels    - maximum pixel height\n" +
+                           "  -w #         - width in inches\n" +
+                           "  -h #         - height in inches\n" +
                            "  -r rll       - alignment of first page, next pages and last page\n" +
                            "                 as 3-character code. 'r' = right, 'l' = left.\n" +
                            "                 default: rll\n" +
@@ -250,7 +247,7 @@ public class PDFCreator {
                     excludeFile = g.getOptarg();
                     break;
                  case 'h':
-                    height = Integer.parseInt(g.getOptarg());
+                    height = Float.parseFloat(g.getOptarg());
                     break;
                  case 'i':
                     includeFile = g.getOptarg();
@@ -270,7 +267,7 @@ public class PDFCreator {
                     verbose = true;
                     break;
                  case 'w':
-                    width = Integer.parseInt(g.getOptarg());
+                    width = Float.parseFloat(g.getOptarg());
                     break;
                  case 'x':
                      pdfVersion = g.getOptarg();

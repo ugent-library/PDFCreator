@@ -29,6 +29,6 @@ Options:
   -i regex     - include files [batchmode]
   -e regex     - exclude files [batchmode]
   -o file      - output file
-  -w pixels    - maximum number of pixel width
-  -h pixels    - maximum number of pixel heigth
+  -w #         - width in inches
+  -h #         - height in inches
   -x version   - PDF verson ("1.4" -> "1.7")
