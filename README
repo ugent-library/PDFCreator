@@ -24,7 +24,7 @@ Usage:
 Options:
 
   -v           - verbose
-  -a 1A|1B     - PDF/A compliance
+  -a 1B|NONE   - PDF/A compliance
   -b           - batchmode
   -i regex     - include files [batchmode]
   -e regex     - exclude files [batchmode]
@@ -35,6 +35,9 @@ Options:
 
 Remarks:
 
-  By default PDFCreator will generate a PDF that fills an area specified
+  By default PDFCreator will generate a PDF/A-1B file that fills an area specified
 by the image resolution tags. The -w and -h options can be used to set
 the dimensions in inches.
+
+  By default PDFCreator will read the ICC Color profile from the supplied images.
+If no color profile is provided sRGB will be used as default.

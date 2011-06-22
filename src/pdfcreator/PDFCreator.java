@@ -18,6 +18,7 @@
  */
 package pdfcreator;
 
+import com.itextpdf.text.BadElementException;
 import com.itextpdf.text.Document;
 import com.itextpdf.text.Image;
 import com.itextpdf.text.Rectangle;
@@ -31,9 +32,12 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -41,6 +45,7 @@ import java.util.List;
  */
 public class PDFCreator {
     public static final int PDF_SPACE_UNIT = 72;
+    public static String  profileName  = "sRGB IEC61966-2.1";
     public static String  colorProfile = "pdfcreator/sRGB.profile";
     public static String  creator = "PDFCreator by Unviversiteitsbibliotheek Gent";
     public static String  align = "rll";
@@ -63,6 +68,7 @@ public class PDFCreator {
         }
         else if (pdfxConformance.equals("PDFA1A")) {
             writer.setPDFXConformance(PdfWriter.PDFA1A);
+            System.err.println("warning: PDFA1A support only sets a flag, no real conversion");
         }
         else {
             writer.setPDFXConformance(PdfWriter.PDFXNONE);
@@ -120,17 +126,39 @@ public class PDFCreator {
             doc.newPage();
         }
 
-        ICC_Profile icc = ICC_Profile.getInstance(getColorProfile());
-        writer.setOutputIntents("Custom", "", "http://www.color.org", "sRGB IEC61966-2.1", icc);
-        
+        ICC_Profile icc = getImageColorProfile(images[0]);
+
+        if (icc == null) {
+            System.err.println("warning: no color profile available in " + images[0] + " using " + profileName);
+            icc = getDefaultColorProfile();
+        }
+
+        writer.setOutputIntents("Custom", "", null, null, icc);
+
         writer.createXmpMetadata();
-        
+
         doc.close();
 
         verbose(filename + ": close");
     }
 
-    protected byte[] getColorProfile() throws IOException {
+    protected ICC_Profile getImageColorProfile(String filename) {
+        try {
+            Image img = Image.getInstance(filename);
+            ICC_Profile icc = img.getICCProfile();
+            return icc;
+        } catch (BadElementException ex) {
+            Logger.getLogger(PDFCreator.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (MalformedURLException ex) {
+            Logger.getLogger(PDFCreator.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(PDFCreator.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+        return null;
+    }
+
+    protected ICC_Profile getDefaultColorProfile() throws IOException {
         InputStream in = this.getClass().getClassLoader().getResourceAsStream(colorProfile);
 
         if (in == null) {
@@ -148,7 +176,7 @@ public class PDFCreator {
 
         in.close();
 
-        return bas.toByteArray();
+        return ICC_Profile.getInstance(bas.toByteArray());
     }
 
     // Rescale to a specified maximum width and height in inches
