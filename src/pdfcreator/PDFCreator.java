@@ -1,5 +1,20 @@
 /*
- *  Copyright (c) 2011 . Patrick Hochstenbach <Patrick.Hochstenbach@gmail.com>
+ *  PDFCreator - creates PDF/A files out of scanned images of textual records
+ *
+ *  Copyright (C) 2011 Patrick Hochstenbach <Patrick.Hochstenbach@gmail.com>
+ *
+ *  This program is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 package pdfcreator;
 
@@ -13,7 +28,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -22,22 +36,21 @@ import java.util.List;
  * @author hochsten
  */
 public class PDFCreator {
-    public static int fistPageAlign  = 1;
-    public static int otherPageAlign = -1;
-    public static int lastPageAlign  = -1;
-    public static String includeFile = null;
-    public static String excludeFile = null;
-    public static int MAX_PIXELS  = 3000;
-    public static String pdfxConformance = "NONE";
-    public static String pdfVersion = "1.4";
+    public static String  align = "rll";
+    public static String  includeFile = null;
+    public static String  excludeFile = null;
+    public static int     width = 0;
+    public static int     height = 0;
+    public static String  pdfxConformance = "NONE";
+    public static String  pdfVersion = "1.4";
     public static boolean verbose = false;
-    public static String out = "/dev/stdout";
+    public static String  out = "/dev/stdout";
 
     @SuppressWarnings("static-access")
     protected void createPdf(String filename, String[] images) throws Exception {
         Document doc = new Document();
         PdfWriter writer = PdfWriter.getInstance(doc, new FileOutputStream(filename));
-
+        
         if (pdfxConformance.equals("PDFA1B")) {
             writer.setPDFXConformance(PdfWriter.PDFA1B);
         }
@@ -63,11 +76,12 @@ public class PDFCreator {
         else {
             writer.setPdfVersion(PdfWriter.VERSION_1_4);
         }
-        
-        Rectangle size = rescale(
-                                maxImageSize(images) ,
-                                MAX_PIXELS
-                                );
+
+        Rectangle size = maxImageSize(images);
+
+        if (width > 0 || height > 0) {
+             size = rescale(size, width, height);
+        }
 
         verbose(filename + ": open");
 
@@ -84,13 +98,13 @@ public class PDFCreator {
 
             // Switch the alignment of book pages based on the pageNumber
             if (i == 0) {
-                img.setAlignment(fistPageAlign == 1 ? img.ALIGN_RIGHT : img.ALIGN_LEFT);
+                img.setAlignment(align.charAt(0) == 'r' ? img.ALIGN_RIGHT : img.ALIGN_LEFT);
             }
             else if (i == images.length - 1) {
-                img.setAlignment(lastPageAlign == 1 ? img.ALIGN_RIGHT : img.ALIGN_LEFT);
+                img.setAlignment(align.charAt(1) == 'r' ? img.ALIGN_RIGHT : img.ALIGN_LEFT);
             }
             else {
-                img.setAlignment(otherPageAlign == 1 ? img.ALIGN_RIGHT : img.ALIGN_LEFT);
+                img.setAlignment(align.charAt(2) == 'r' ? img.ALIGN_RIGHT : img.ALIGN_LEFT);
             }
 
             doc.setPageSize(size);
@@ -106,34 +120,43 @@ public class PDFCreator {
         verbose(filename + ": close");
     }
 
-    protected Rectangle rescale(Rectangle r, int maxpixels) {
+    protected Rectangle rescale(Rectangle r, int width, int height) {
         float w = r.getWidth();
         float h = r.getHeight();
 
-        if (w < maxpixels) {
+        if (width == 0 && height == 0) {
             return r;
         }
+        else if (width == 0) {
+            return new Rectangle(w * height/ h , (float) height);
+        }
+        else if (height == 0) {
+            return new Rectangle((float) width , h * width / w);
+        }
+        else if (width > height) {
+            return new Rectangle((float) width , h * width / w);
+        }
         else {
-            return  new Rectangle((float) maxpixels , h * maxpixels / w);
+            return new Rectangle((float) width , h * width / w);
         }
     }
 
     protected Rectangle maxImageSize(String[] images) throws Exception {
-        float width = 0;
-        float height = 0;
+        float w = 0;
+        float h = 0;
 
         for (int i = 0 ; i < images.length ; i++) {
             Image img = Image.getInstance(images[i]);
 
-            if (img.getWidth() > width) {
-                width = img.getWidth();
+            if (img.getWidth() > w) {
+                w = img.getWidth();
             }
-            if (img.getHeight() > height) {
-                height = img.getHeight();
+            if (img.getHeight() > h) {
+                h = img.getHeight();
             }
         }
 
-        return new Rectangle(width,height);
+        return new Rectangle(w,h);
     }
 
     protected void verbose(String msg) {
@@ -145,14 +168,29 @@ public class PDFCreator {
     protected static void usage() {
         System.err.println("usage:");
         System.err.println();
-        System.err.println(" PDFCreator [-v] [-o file] [-p MAX_PIXELS] file [file...]");
-        System.err.println(" PDFCreator [-v] [-b] [-i regex] [-e regex] [-p MAX_PIXELS] < input");
+        System.err.println(" PDFCreator [options] file [file...]");
+        System.err.println(" PDFCreator [options] -b < input");
         System.err.println();
         System.err.println("where input like");
         System.err.println();
         System.err.println("[output file] [image directory]");
         System.err.println("[output file] [image directory]");
         System.err.println("...");
+        System.err.println();
+        System.err.println("options:");
+        System.err.println();
+        System.err.println("  -v           - verbose\n" +
+                           "  -a 1A|1B     - PDF/A compliance\n" +
+                           "  -b           - batchmode\n" +
+                           "  -i regex     - include files [batchmode]\n" +
+                           "  -e regex     - exclude files [batchmode]\n" +
+                           "  -o file      - output file\n" +
+                           "  -w pixels    - maximum pixel width\n" +
+                           "  -h pixels    - maximum pixel height\n" +
+                           "  -r rll       - alignment of first page, next pages and last page\n" +
+                           "                 as 3-character code. 'r' = right, 'l' = left.\n" +
+                           "                 default: rll\n" +
+                           "  -x version   - PDF verson (\"1.4\" -> \"1.7\")\n");
         System.exit(1);
     }
 
@@ -188,7 +226,7 @@ public class PDFCreator {
     public static void main(String[] args) throws Exception {
         boolean batch = false;
 
-        Getopt g = new Getopt("PDFCreator", args, "a:be:i:o:p:vx:");
+        Getopt g = new Getopt("PDFCreator", args, "a:be:h:i:o:p:r:vw:x:");
            
         int c;
         String arg;
@@ -211,17 +249,28 @@ public class PDFCreator {
                  case 'e':
                     excludeFile = g.getOptarg();
                     break;
+                 case 'h':
+                    height = Integer.parseInt(g.getOptarg());
+                    break;
                  case 'i':
                     includeFile = g.getOptarg();
                     break;
                  case 'o':
                     out = g.getOptarg();
                     break;
-                 case 'p':
-                    MAX_PIXELS = Integer.parseInt(g.getOptarg());
+                 case 'r':
+                    if (g.getOptarg().length() == 3) {
+                        align = g.getOptarg();
+                    }
+                    else {
+                        System.err.println("warning: -r syntax error. Needs 3-chars. E.g. rll, lll, llr");
+                    }
                     break;
                  case 'v':
                     verbose = true;
+                    break;
+                 case 'w':
+                    width = Integer.parseInt(g.getOptarg());
                     break;
                  case 'x':
                      pdfVersion = g.getOptarg();

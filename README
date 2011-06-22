@@ -1,8 +1,7 @@
 PDFCreator
 
 Creates a PDF/A file from a list of images. This code is used by
-Ghent University Library to create PDF files out of TIF scans from
-old manuscripts.
+Ghent University Library to create PDF files out of TIFF scans.
 
 Usage:
 
@@ -22,12 +21,14 @@ Usage:
   my_file.pdf  /data/files/my_images
   my_file2.pdf /data/files/my_images2
 
-
 Options:
 
   -v           - verbose
   -a 1A|1B     - PDF/A compliance
   -b           - batchmode
+  -i regex     - include files [batchmode]
+  -e regex     - exclude files [batchmode]
   -o file      - output file
-  -p pixels    - maximum number of pixels on either axis
+  -w pixels    - maximum number of pixel width
+  -h pixels    - maximum number of pixel heigth
   -x version   - PDF verson ("1.4" -> "1.7")
