@@ -40,8 +40,8 @@ public class PDFCreator {
     public static String  align = "rrr";
     public static String  includeFile = null;
     public static String  excludeFile = null;
-    public static float   width  = 11.7f;
-    public static float   height = 8.3f;
+    public static float   width  = 0;
+    public static float   height = 0;
     public static String  pdfxConformance = "NONE";
     public static String  pdfVersion = "1.4";
     public static boolean verbose = false;
@@ -117,6 +117,7 @@ public class PDFCreator {
         verbose(filename + ": close");
     }
 
+    // Rescale to a specified maximum width and height in inches
     protected Rectangle rescale(Rectangle r, float width, float height) {
         float w = r.getWidth();
         float h = r.getHeight();
@@ -138,12 +139,18 @@ public class PDFCreator {
         }
     }
 
+    // Return the maximum image size in PDF user units
     protected Rectangle maxImageSize(String[] images) throws Exception {
         float w = 0;
         float h = 0;
+        float dpiX = 0;
+        float dpiY = 0;
 
         for (int i = 0 ; i < images.length ; i++) {
             Image img = Image.getInstance(images[i]);
+
+            dpiX = img.getDpiX();
+            dpiY = img.getDpiY();
 
             if (img.getWidth() > w) {
                 w = img.getWidth();
@@ -153,7 +160,12 @@ public class PDFCreator {
             }
         }
 
-        return new Rectangle(w,h);
+        if (dpiX == 0 || dpiY == 0) {
+            return new Rectangle(w,h);
+        }
+        else {
+            return new Rectangle(PDF_SPACE_UNIT * w/dpiX, PDF_SPACE_UNIT * h/dpiY);
+        }
     }
 
     protected void verbose(String msg) {
@@ -168,7 +180,7 @@ public class PDFCreator {
         System.err.println(" PDFCreator [options] file [file...]");
         System.err.println(" PDFCreator [options] -b < input");
         System.err.println();
-        System.err.println("where input like");
+        System.err.println("where input like:");
         System.err.println();
         System.err.println("[output file] [image directory]");
         System.err.println("[output file] [image directory]");

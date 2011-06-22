@@ -32,3 +32,9 @@ Options:
   -w #         - width in inches
   -h #         - height in inches
   -x version   - PDF verson ("1.4" -> "1.7")
+
+Remarks:
+
+  By default PDFCreator will generate a PDF that fills an area specified
+by the image resolution tags. The -w and -h options can be used to set
+the dimensions in inches.
