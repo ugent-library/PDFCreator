@@ -47,7 +47,7 @@ public class PDFCreator {
     public static final int PDF_SPACE_UNIT = 72;
     public static String  profileName  = "sRGB IEC61966-2.1";
     public static String  colorProfile = "pdfcreator/sRGB.profile";
-    public static String  creator = "PDFCreator by Unviversiteitsbibliotheek Gent";
+    public static String  creator = "Universiteitsbibliotheek Gent";
     public static String  align = "rll";
     public static String  includeFile = null;
     public static String  excludeFile = null;
