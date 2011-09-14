@@ -74,6 +74,10 @@
 
     <target name="-post-compile">
         <copy file="bin/pdfcreator" todir="dist"/>
+        <copy file="bin/pdffonts" todir="dist"/>
+        <copy file="bin/pdffontpage" todir="dist"/>
         <chmod file="dist/pdfcreator" perm="755"/>
+        <chmod file="dist/pdffonts" perm="755"/>
+        <chmod file="dist/pdffontpage" perm="755"/>
     </target>
 </project>
