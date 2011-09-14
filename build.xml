@@ -73,6 +73,9 @@
     -->
 
     <target name="-post-compile">
+        <copy todir="dist/lib">
+            <fileset dir="lib"/>
+        </copy>
         <copy file="bin/pdfcreator" todir="dist"/>
         <copy file="bin/pdffonts" todir="dist"/>
         <copy file="bin/pdffontpage" todir="dist"/>
