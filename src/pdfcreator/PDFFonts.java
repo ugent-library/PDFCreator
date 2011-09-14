@@ -3,8 +3,13 @@ package pdfcreator;
 import com.itextpdf.text.pdf.PdfDictionary;
 import com.itextpdf.text.pdf.PdfName;
 import com.itextpdf.text.pdf.PdfReader;
+import gnu.getopt.Getopt;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.TreeSet;
 
 /**
@@ -21,7 +26,6 @@ public class PDFFonts {
     /**
      * Creates a Set containing information about the fonts in the src PDF file.
      * @param src the path to a PDF file
-     * @throws IOException
      */
     public Set<String> listFonts(String src) {
         Set<String> set = new TreeSet<String>();
@@ -42,9 +46,69 @@ public class PDFFonts {
     }
 
     /**
+     * Create a Map containing information about the fonts available per page
+     * @param src the path to a PDF file
+     */
+    public Map<String,Integer> listFontDistribution(String src) {
+        Map<String,Integer> map = new TreeMap<String, Integer>();
+
+        try {
+            PdfReader reader = new PdfReader(src);
+
+            for (int k = 1; k <= reader.getNumberOfPages(); ++k) {
+                Set<String> set = new TreeSet<String>();
+                PdfDictionary resources = reader.getPageN(k).getAsDict(PdfName.RESOURCES);
+                processResource(set, resources);
+
+                for (String fontname : set) {
+                    if (map.containsKey(fontname)) {
+                        Integer count = map.get(fontname);
+                        map.put(fontname, new Integer(count.intValue() + 1));
+                    }
+                    else {
+                        map.put(fontname, new Integer(1));
+                    }
+                }
+            }
+        }
+        catch (IOException ex) {
+            System.err.println("ERROR: " + src + " " + ex.getMessage());
+        }
+
+        return map;
+    }
+
+    /**
+     * Create a list containing information about which fonts are being used on what
+     * page.
+     * @param src thr path to a PDF file
+     */
+    public List<Set<String>> listFontPerPage(String src) {
+        List<Set<String>> list = new ArrayList<Set<String>>();
+
+        try {
+            PdfReader reader = new PdfReader(src);
+
+            for (int k = 1; k <= reader.getNumberOfPages(); ++k) {
+                Set<String> set = new TreeSet<String>();
+                PdfDictionary resources = reader.getPageN(k).getAsDict(PdfName.RESOURCES);
+                processResource(set, resources);
+
+                list.add(set);
+            }
+        }
+        catch (IOException ex) {
+            System.err.println("ERROR: " + src + " " + ex.getMessage());
+        }
+
+        return list;
+    }
+
+    /**
      * Extracts the font names from page or XObject resources.
      * @param set the set with the font names
      * @param resources the resources dictionary
+     * @thorws IOException
      */
     public static void processResource(Set<String> set, PdfDictionary resource) throws IOException {
         if (resource == null)
@@ -108,16 +172,11 @@ public class PDFFonts {
         return true;
     }
 
-    public static void main(String[] args) throws Exception {
-        if (args.length == 0) {
-            System.err.println("usage: PDFFonts file [file...]");
-            System.exit(1);
-        }
-
+    public static void listing(String[] files) throws Exception {
         PDFFonts pf = new PDFFonts();
 
-        for (int i = 0 ; i < args.length ; i++) {
-            String path = args[i];
+        for (int i = 0 ; i < files.length ; i++) {
+            String path = files[i];
 
             Set<String> set = pf.listFonts(path);
 
@@ -139,5 +198,77 @@ public class PDFFonts {
 
             System.out.println(path + " : " + n + " fonts; " + p + "% embedded; " + risk + " at risk");
         }
+    }
+
+    public static void distribution(String[] files) throws Exception {
+        PDFFonts pf = new PDFFonts();
+
+        for (int i = 0 ; i < files.length ; i++) {
+            String path = files[i];
+
+            Map<String,Integer> map = pf.listFontDistribution(path);
+
+            map.entrySet();
+
+            for (Map.Entry<String, Integer> entry : map.entrySet()) {
+                System.out.println(path + " : " + entry.getKey() + " count " + entry.getValue());
+            }
+        }
+    }
+
+    public static void pages(String[] files) throws Exception {
+        PDFFonts pf = new PDFFonts();
+
+        for (int i = 0 ; i < files.length ; i++) {
+            String path = files[i];
+
+            List<Set<String>> list = pf.listFontPerPage(path);
+
+            int page = 0;
+            for (Set<String> set : list) {
+                page++;
+
+                for (String fontname: set) {
+                     System.out.println(path + "[" + page + "] : " + fontname);
+                }
+            }
+        }
+    }
+
+    public static void main(String[] args) throws Exception {
+        boolean doDistribution = false;
+        boolean doPages = false;
+
+        if (args.length == 0) {
+            System.err.println("usage: PDFFonts [-d] [-p] file [file...]");
+            System.exit(1);
+        }
+
+        Getopt g = new Getopt("PDFCreator", args, "dp");
+
+        int c;
+        while ((c = g.getopt()) != -1) {
+             switch(c) {
+                 case 'd':
+                   doDistribution = true;
+                   break;
+                 case 'p':
+                   doPages = true;
+                   break;
+             }
+        }
+
+        String[] rest = new String[args.length - g.getOptind()];
+
+        for (int i = 0 ; i < rest.length ; i++) {
+            rest[i] = args[i + g.getOptind()];
+        }
+
+        if (doDistribution)
+            distribution(rest);
+        else if (doPages)
+            pages(rest);
+        else
+            listing(rest);
     }
 }
