@@ -1,6 +1,5 @@
 package pdfcreator;
 
-import com.itextpdf.text.exceptions.InvalidPdfException;
 import com.itextpdf.text.pdf.PdfDictionary;
 import com.itextpdf.text.pdf.PdfName;
 import com.itextpdf.text.pdf.PdfReader;
@@ -11,6 +10,14 @@ import java.util.TreeSet;
 /**
  */
 public class PDFFonts {
+    private final String[] base14 = new String[] {
+        "Courier" , "Courier-Bold" , "Courier-Oblique" , "Courier-BoldOblique" ,
+        "Times-Roman" , "Times-Bold" , "Times-Italic" , "Times-BoldItalic" ,
+        "Helvetica" , "Helvetica-Bold", "Helvetica-Oblique" , "Helvetica-BoldOblique" ,
+        "Symbol" ,
+        "ZapfDingbats"
+    };
+
     /**
      * Creates a Set containing information about the fonts in the src PDF file.
      * @param src the path to a PDF file
@@ -86,29 +93,51 @@ public class PDFFonts {
         }
     }
 
+    public boolean isEmbedded(String fontname) {
+        return fontname.matches(".*embedded$");
+    }
+
+    public boolean isAtRisk(String fontname) {
+        if (isEmbedded(fontname)) {
+            return false;
+        }
+
+        for (int i = 0 ; i < base14.length ; i++) {
+            if (fontname.equals(base14[i]))
+                return false;
+        }
+
+        return true;
+    }
+
     public static void main(String[] args) throws Exception {
         if (args.length == 0) {
             System.err.println("usage: PDFFonts file [file...]");
             System.exit(1);
         }
 
+        PDFFonts pf = new PDFFonts();
+
         for (int i = 0 ; i < args.length ; i++) {
             String path = args[i];
 
-            Set<String> set = new PDFFonts().listFonts(path);
+            Set<String> set = pf.listFonts(path);
 
             int embedded = 0;
+            int risk = 0;
 
             for (String fontname : set) {
-                if (fontname.matches(".*embedded$"))
+                if (pf.isEmbedded(fontname))
                     embedded++;
+
+                if (pf.isAtRisk(fontname))
+                    risk++;
 
                 System.out.println(path + " : " + fontname);
             }
 
             int n = set.size();
             int p = n == 0 ? 0 : 100 * embedded / n;
-            int risk = n - embedded;
 
             System.out.println(path + " : " + n + " fonts; " + p + "% embedded; " + risk + " at risk");
         }
