@@ -60,6 +60,11 @@ public class PDFFonts {
                 continue;
             }
 
+            if (font.getAsName(PdfName.BASEFONT) == null) {
+                System.err.println("ERROR: empty font name for font: " + font );
+                continue;
+            }
+
             String name = font.getAsName(PdfName.BASEFONT).toString();
             
             if (name.length() > 8 && name.charAt(7) == '+') {
