@@ -46,7 +46,7 @@ public class PDFFonts {
      * @param set the set with the font names
      * @param resources the resources dictionary
      */
-    public static void processResource(Set<String> set, PdfDictionary resource) {
+    public static void processResource(Set<String> set, PdfDictionary resource) throws IOException {
         if (resource == null)
             return;
         PdfDictionary xobjects = resource.getAsDict(PdfName.XOBJECT);
@@ -63,13 +63,11 @@ public class PDFFonts {
             font = fonts.getAsDict(key);
 
             if (font == null) {
-                System.err.println("ERROR: empty font for key: " + key );
-                continue;
+                throw new IOException("ERROR: empty font for key: " + key );
             }
 
             if (font.getAsName(PdfName.BASEFONT) == null) {
-                System.err.println("ERROR: empty font name for font: " + font );
-                continue;
+                throw new IOException("ERROR: empty font name for font: " + font );
             }
 
             String name = font.getAsName(PdfName.BASEFONT).toString();
