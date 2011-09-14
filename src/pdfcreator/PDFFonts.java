@@ -16,7 +16,7 @@ public class PDFFonts {
      * @param src the path to a PDF file
      * @throws IOException
      */
-    public Set<String> listFonts(String src) throws IOException {
+    public Set<String> listFonts(String src) {
         Set<String> set = new TreeSet<String>();
 
         try {
@@ -27,7 +27,7 @@ public class PDFFonts {
                 processResource(set, resources);
             }
         }
-        catch (InvalidPdfException ex) {
+        catch (IOException ex) {
             System.err.println("ERROR: " + src + " " + ex.getMessage());
         }
         
