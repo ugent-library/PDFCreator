@@ -31,6 +31,10 @@ Options:
   -o file      - output file
   -w #         - width in inches
   -h #         - height in inches
+  -r rll        - alignment of first page, next pages and last page
+                  as 3-character code. 'r' = right, 'l' = left.
+                  default: rll
+  -t title      - title of the document
   -x version   - PDF verson ("1.4" -> "1.7")
 
 Remarks:
