@@ -73,14 +73,26 @@
     -->
 
     <target name="-post-compile">
-        <copy todir="dist/lib">
+        <copy todir="${dist.dir}/lib">
             <fileset dir="lib"/>
         </copy>
-        <copy file="bin/pdfcreator" todir="dist"/>
-        <copy file="bin/pdffonts" todir="dist"/>
-        <copy file="bin/pdffontpage" todir="dist"/>
-        <chmod file="dist/pdfcreator" perm="755"/>
-        <chmod file="dist/pdffonts" perm="755"/>
-        <chmod file="dist/pdffontpage" perm="755"/>
+        <copy file="bin/pdfcreator" todir="${dist.dir}"/>
+        <copy file="bin/pdffonts" todir="${dist.dir}"/>
+        <copy file="bin/pdffontpage" todir="${dist.dir}"/>
+        <copy file="bin/pdfextract" todir="${dist.dir}"/>
+        <chmod file="${dist.dir}/pdfcreator" perm="755"/>
+        <chmod file="${dist.dir}/pdffonts" perm="755"/>
+        <chmod file="${dist.dir}/pdffontpage" perm="755"/>
+        <chmod file="${dist.dir}/pdfextract" perm="755"/>
+    </target>
+
+    <target name="-post-jar">
+        <tar tarfile="${dist.dir}.tgz" basedir="." includes="${dist.dir}/**" compression="gzip"/>
+        <zip destfile="${dist.dir}.zip" basedir="." includes="${dist.dir}/**" />
+    </target>
+
+    <target name="-post-clean">
+        <delete file="${dist.dir}.tgz"/>
+        <delete file="${dist.dir}.zip"/>
     </target>
 </project>

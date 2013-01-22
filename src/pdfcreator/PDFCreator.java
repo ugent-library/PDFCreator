@@ -51,6 +51,7 @@ public class PDFCreator {
     public static String  align = "rll";
     public static String  includeFile = null;
     public static String  excludeFile = null;
+    public static String  title  = null;
     public static float   width  = 0;
     public static float   height = 0;
     public static String  pdfxConformance = "PDFA1B";
@@ -103,6 +104,10 @@ public class PDFCreator {
         
         doc.addCreationDate();
         doc.addCreator(creator);
+
+        if (title != null) {
+            doc.addTitle(title);
+        }
 
         for (int i = 0 ; i < images.length ; i++) {
             verbose(" +" + images[i]);
@@ -261,6 +266,7 @@ public class PDFCreator {
                            "  -r rll        - alignment of first page, next pages and last page\n" +
                            "                  as 3-character code. 'r' = right, 'l' = left.\n" +
                            "                  default: rll\n" +
+                           "  -t title      - title of the document\n" + 
                            "  -x version    - PDF verson (\"1.4\" -> \"1.7\")\n");
         System.exit(1);
     }
@@ -297,7 +303,7 @@ public class PDFCreator {
     public static void main(String[] args) throws Exception {
         boolean batch = false;
 
-        Getopt g = new Getopt("PDFCreator", args, "a:be:h:i:o:p:r:vw:x:");
+        Getopt g = new Getopt("PDFCreator", args, "a:be:h:i:o:p:r:t:vw:x:");
            
         int c;
         String arg;
@@ -337,6 +343,8 @@ public class PDFCreator {
                         System.err.println("warning: -r syntax error. Needs 3-chars. E.g. rll, lll, llr");
                     }
                     break;
+                 case 't':
+                    title = g.getOptarg();
                  case 'v':
                     verbose = true;
                     break;
