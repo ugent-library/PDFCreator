@@ -1,11 +1,11 @@
 #!/bin/bash
 
-if [ -z '$PDFCREATOR_BIN' ]; then
-  $PDFCREATOR_BIN = `dirname $0`
+if [ -z "$PDFCREATOR_BIN" ]; then
+  PDFCREATOR_BIN=`dirname $0`
 fi
 
-if [ -z '$PDFCREATOR_LIB' ]; then
-  $PDFCREATOR_LIB = "$PDFCREATOR_BIN/lib"
+if [ -z "$PDFCREATOR_LIB" ]; then
+  PDFCREATOR_LIB="$PDFCREATOR_BIN/lib"
 fi
 
 CP="$PDFCREATOR_BIN/PDFCreator.jar:$PDFCREATOR_LIB/itextpdf-5.1.1.jar:$PDFCREATOR_LIB/java-getopt-1.0.13.jar"
