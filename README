@@ -24,24 +24,18 @@ Usage:
 Options:
 
   -v           - verbose
-  -a 1B|NONE   - PDF/A compliance
+  -a 1A|1B|2A|2B|3A|3B|NONE   - PDF/A compliance
   -b           - batchmode
   -i regex     - include files [batchmode]
   -e regex     - exclude files [batchmode]
   -o file      - output file
-  -w #         - width in inches
-  -h #         - height in inches
-  -r rll        - alignment of first page, next pages and last page
-                  as 3-character code. 'r' = right, 'l' = left.
-                  default: rll
-  -t title      - title of the document
+  -t title     - title of the document
   -x version   - PDF verson ("1.4" -> "1.7")
 
 Remarks:
 
   By default PDFCreator will generate a PDF/A-1B file that fills an area specified
-by the image resolution tags. The -w and -h options can be used to set
-the dimensions in inches.
+by the image resolution tags. 
 
   By default PDFCreator will read the ICC Color profile from the supplied images.
 If no color profile is provided sRGB will be used as default.

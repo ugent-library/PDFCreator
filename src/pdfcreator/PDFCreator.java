@@ -23,6 +23,8 @@ import com.itextpdf.text.Document;
 import com.itextpdf.text.Image;
 import com.itextpdf.text.Rectangle;
 import com.itextpdf.text.pdf.ICC_Profile;
+import com.itextpdf.text.pdf.PdfAConformanceLevel;
+import com.itextpdf.text.pdf.PdfAWriter;
 import com.itextpdf.text.pdf.PdfWriter;
 import gnu.getopt.Getopt;
 import java.io.BufferedReader;
@@ -48,13 +50,10 @@ public class PDFCreator {
     public static String  profileName  = "sRGB IEC61966-2.1";
     public static String  colorProfile = "pdfcreator/sRGB.profile";
     public static String  creator = "Universiteitsbibliotheek Gent";
-    public static String  align = "rll";
     public static String  includeFile = null;
     public static String  excludeFile = null;
     public static String  title  = null;
-    public static float   width  = 0;
-    public static float   height = 0;
-    public static String  pdfxConformance = "PDFA1B";
+    public static String  pdfxConformance = "PDFA1A";
     public static String  pdfVersion = "1.4";
     public static boolean verbose = false;
     public static String  out = "/dev/stdout";
@@ -62,19 +61,30 @@ public class PDFCreator {
     @SuppressWarnings("static-access")
     protected void createPdf(String filename, String[] images) throws Exception {
         Document doc = new Document();
-        PdfWriter writer = PdfWriter.getInstance(doc, new FileOutputStream(filename));
-
-        if (pdfxConformance.equals("PDFA1B")) {
-            writer.setPDFXConformance(PdfWriter.PDFA1B);
+        PdfWriter writer;
+        
+        if (pdfxConformance.equals("PDFA1A")) {
+            writer = PdfAWriter.getInstance(doc, new FileOutputStream(filename), PdfAConformanceLevel.PDF_A_1A);
         }
-        else if (pdfxConformance.equals("PDFA1A")) {
-            writer.setPDFXConformance(PdfWriter.PDFA1A);
-            System.err.println("warning: PDFA1A support only sets a flag, no real conversion");
+        else if (pdfxConformance.equals("PDFA1B")) {
+            writer = PdfAWriter.getInstance(doc, new FileOutputStream(filename), PdfAConformanceLevel.PDF_A_1B);
+        }
+        else if (pdfxConformance.equals("PDFA2A")) {
+            writer = PdfAWriter.getInstance(doc, new FileOutputStream(filename), PdfAConformanceLevel.PDF_A_2A);
+        }
+        else if (pdfxConformance.equals("PDFA2B")) {
+            writer = PdfAWriter.getInstance(doc, new FileOutputStream(filename), PdfAConformanceLevel.PDF_A_2B);
+        }
+        else if (pdfxConformance.equals("PDFA3A")) {
+            writer = PdfAWriter.getInstance(doc, new FileOutputStream(filename), PdfAConformanceLevel.PDF_A_3A);
+        }
+        else if (pdfxConformance.equals("PDFA3B")) {
+            writer = PdfAWriter.getInstance(doc, new FileOutputStream(filename), PdfAConformanceLevel.PDF_A_3B);
         }
         else {
-            writer.setPDFXConformance(PdfWriter.PDFXNONE);
+            writer = PdfWriter.getInstance(doc, new FileOutputStream(filename));
         }
-
+       
         if (pdfVersion.equals("1.4")) {
             writer.setPdfVersion(PdfWriter.VERSION_1_4);
         }
@@ -91,16 +101,7 @@ public class PDFCreator {
             writer.setPdfVersion(PdfWriter.VERSION_1_4);
         }
 
-        Rectangle size = rescale(maxImageSize(images), width, height);
-
         verbose(filename + ": open");
-
-        // Set pageSize and margins before opening the document
-        // to make them active on the first page
-        doc.setPageSize(size);
-        doc.setMargins(0, 0, 0, 0);
-
-        doc.open();
         
         doc.addCreationDate();
         doc.addCreator(creator);
@@ -113,17 +114,14 @@ public class PDFCreator {
             verbose(" +" + images[i]);
 
             Image img = Image.getInstance(images[i]);     
-            img.scaleToFit(size.getWidth(), size.getHeight());
-
-            // Switch the alignment of book pages based on the pageNumber
-            if (i == 0) {
-                img.setAlignment(align.charAt(0) == 'r' ? img.ALIGN_RIGHT : img.ALIGN_LEFT);
-            }
-            else if (i == images.length - 1) {
-                img.setAlignment(align.charAt(1) == 'r' ? img.ALIGN_RIGHT : img.ALIGN_LEFT);
-            }
-            else {
-                img.setAlignment(align.charAt(2) == 'r' ? img.ALIGN_RIGHT : img.ALIGN_LEFT);
+            
+            doc.setPageSize(new Rectangle(img.getWidth(), img.getHeight()));
+            doc.setMargins(0, 0, 0, 0);
+            
+            if (doc.isOpen()) {
+                doc.newPage();
+            } else {
+                doc.open();
             }
 
             doc.add(img);
@@ -184,57 +182,6 @@ public class PDFCreator {
         return ICC_Profile.getInstance(bas.toByteArray());
     }
 
-    // Rescale to a specified maximum width and height in inches
-    protected Rectangle rescale(Rectangle r, float width, float height) {
-        float w = r.getWidth();
-        float h = r.getHeight();
-
-        if (width == 0 && height == 0) {
-            return r;
-        }
-        else if (width == 0) {
-            return new Rectangle(PDF_SPACE_UNIT * w * height/ h , PDF_SPACE_UNIT *height);
-        }
-        else if (height == 0) {
-            return new Rectangle(PDF_SPACE_UNIT * width , PDF_SPACE_UNIT * h * width / w);
-        }
-        else if (width > height) {
-            return new Rectangle(PDF_SPACE_UNIT * w * height/ h , PDF_SPACE_UNIT *height);
-        }
-        else {
-            return new Rectangle(PDF_SPACE_UNIT * width , PDF_SPACE_UNIT * h * width / w);
-        }
-    }
-
-    // Return the maximum image size in PDF user units
-    protected Rectangle maxImageSize(String[] images) throws Exception {
-        float w = 0;
-        float h = 0;
-        float dpiX = 0;
-        float dpiY = 0;
-
-        for (int i = 0 ; i < images.length ; i++) {
-            Image img = Image.getInstance(images[i]);
-
-            dpiX = img.getDpiX();
-            dpiY = img.getDpiY();
-
-            if (img.getWidth() > w) {
-                w = img.getWidth();
-            }
-            if (img.getHeight() > h) {
-                h = img.getHeight();
-            }
-        }
-
-        if (dpiX == 0 || dpiY == 0) {
-            return new Rectangle(w,h);
-        }
-        else {
-            return new Rectangle(PDF_SPACE_UNIT * w/dpiX, PDF_SPACE_UNIT * h/dpiY);
-        }
-    }
-
     protected void verbose(String msg) {
         if (verbose) {
             System.err.println(msg);
@@ -256,16 +203,11 @@ public class PDFCreator {
         System.err.println("options:");
         System.err.println();
         System.err.println("  -v            - verbose\n" +
-                           "  -a 1A|1B|NONE - PDF/A compliance\n" +
+                           "  -a 1A|1B|2A|2B|3A|3B|NONE - PDF/A compliance\n" +
                            "  -b            - batchmode\n" +
                            "  -i regex      - include files [batchmode]\n" +
                            "  -e regex      - exclude files [batchmode]\n" +
                            "  -o file       - output file\n" +
-                           "  -w #          - width in inches\n" +
-                           "  -h #          - height in inches\n" +
-                           "  -r rll        - alignment of first page, next pages and last page\n" +
-                           "                  as 3-character code. 'r' = right, 'l' = left.\n" +
-                           "                  default: rll\n" +
                            "  -t title      - title of the document\n" + 
                            "  -x version    - PDF verson (\"1.4\" -> \"1.7\")\n");
         System.exit(1);
@@ -303,7 +245,7 @@ public class PDFCreator {
     public static void main(String[] args) throws Exception {
         boolean batch = false;
 
-        Getopt g = new Getopt("PDFCreator", args, "a:be:h:i:o:p:r:t:vw:x:");
+        Getopt g = new Getopt("PDFCreator", args, "a:bc:e:i:o:p:r:t:vx:");
            
         int c;
         String arg;
@@ -316,6 +258,18 @@ public class PDFCreator {
                     else if ("1B".equals(g.getOptarg())) {
                         pdfxConformance = "PDFA1B";
                     }
+                    else if ("2A".equals(g.getOptarg())) {
+                        pdfxConformance = "PDFA2A";
+                    }
+                    else if ("2B".equals(g.getOptarg())) {
+                        pdfxConformance = "PDFA2B";
+                    }
+                    else if ("3A".equals(g.getOptarg())) {
+                        pdfxConformance = "PDFA3A";
+                    }
+                    else if ("3B".equals(g.getOptarg())) {
+                        pdfxConformance = "PDFA3B";
+                    }
                     else {
                         pdfxConformance = "NONE";
                     }
@@ -326,30 +280,16 @@ public class PDFCreator {
                  case 'e':
                     excludeFile = g.getOptarg();
                     break;
-                 case 'h':
-                    height = Float.parseFloat(g.getOptarg());
-                    break;
                  case 'i':
                     includeFile = g.getOptarg();
                     break;
                  case 'o':
                     out = g.getOptarg();
                     break;
-                 case 'r':
-                    if (g.getOptarg().length() == 3) {
-                        align = g.getOptarg();
-                    }
-                    else {
-                        System.err.println("warning: -r syntax error. Needs 3-chars. E.g. rll, lll, llr");
-                    }
-                    break;
                  case 't':
                     title = g.getOptarg();
                  case 'v':
                     verbose = true;
-                    break;
-                 case 'w':
-                    width = Float.parseFloat(g.getOptarg());
                     break;
                  case 'x':
                      pdfVersion = g.getOptarg();
