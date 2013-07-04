@@ -80,10 +80,12 @@
         <copy file="bin/pdffonts" todir="${dist.dir}"/>
         <copy file="bin/pdffontpage" todir="${dist.dir}"/>
         <copy file="bin/pdfextract" todir="${dist.dir}"/>
+        <copy file="bin/pdfimages" todir="${dist.dir}"/>
         <chmod file="${dist.dir}/pdfcreator" perm="755"/>
         <chmod file="${dist.dir}/pdffonts" perm="755"/>
         <chmod file="${dist.dir}/pdffontpage" perm="755"/>
         <chmod file="${dist.dir}/pdfextract" perm="755"/>
+        <chmod file="${dist.dir}/pdfimages" perm="755"/>
     </target>
 
     <target name="-post-jar">
