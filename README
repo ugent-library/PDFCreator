@@ -1,11 +1,8 @@
 PDFCreator
 
-Creates a PDF/A file from a list of images. This code is used by
-Ghent University Library to create PDF files out of TIFF scans.
+Creates a PDF/A file from a list of images (JPEG,JPEG2000,TIF) with optional HOCR support.
 
 Usage:
-
-  cd dist
 
   # Create a PDF out of a list of images
   ./pdfcreator -v -o test.pdf /tmp/*.tif
@@ -39,3 +36,12 @@ by the image resolution tags.
 
   By default PDFCreator will read the ICC Color profile from the supplied images.
 If no color profile is provided sRGB will be used as default.
+
+  When the HTML files are available that match the name of the image files 
+  (e.g. 0001.tif vs 0001.html), then these files will be interpreted as HOCR
+  data and included in a PDF file with fulltext search.
+
+Authors:
+
+ * Patrick Hochstebach < patrick . hochstenbach @ ugent . be >
+ * Nicolas Franck < nicolas . franck @ ugent . be >

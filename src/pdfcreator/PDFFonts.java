@@ -1,3 +1,6 @@
+/*
+ *  Copyright (c) 2018 . Patrick Hochstenbach <Patrick.Hochstenbach@ugent.be>
+ */
 package pdfcreator;
 
 import com.itextpdf.text.pdf.PdfDictionary;
