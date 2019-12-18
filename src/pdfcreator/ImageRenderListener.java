@@ -3,7 +3,6 @@
  */
 package pdfcreator;
 
-import com.itextpdf.text.pdf.PdfName;
 import com.itextpdf.text.pdf.parser.ImageRenderInfo;
 import com.itextpdf.text.pdf.parser.PdfImageObject;
 import com.itextpdf.text.pdf.parser.RenderListener;
@@ -22,6 +21,8 @@ public class ImageRenderListener implements RenderListener {
  
     /**
      * Creates a RenderListener that will look for images.
+     * 
+     * @param path path to find image files
      */
     public ImageRenderListener(String path) {
         this.path = path;

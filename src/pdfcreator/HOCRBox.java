@@ -14,11 +14,12 @@ public class HOCRBox {
     private HOCRBoxGranularity boxGranularity = HOCRBoxGranularity.WORD;
 
     /**
-     *
-     * @param page
-     * @param pageCoordinates
-     * @param text
-     * @param coordinates
+     * Create a new HOCRBox instance
+     * 
+     * @param page  a page number
+     * @param pageCoordinates the x1,y1,x2,y2 coordinates of the page
+     * @param text the OCR text
+     * @param coordinates x1,y1,x2,y2 coordinates of the OCR text
      */
     public HOCRBox(int page,int [] pageCoordinates,String text, int [] coordinates){
 
@@ -130,7 +131,7 @@ public class HOCRBox {
      *
      * get "bbox" value for this box
      *
-     * @return
+     * @return String
      */
     public String getBbox(){
         return coordinates[0]+","+coordinates[1]+","+coordinates[2]+","+coordinates[3];

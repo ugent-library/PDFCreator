@@ -29,6 +29,7 @@ public class PDFFonts {
     /**
      * Creates a Set containing information about the fonts in the src PDF file.
      * @param src the path to a PDF file
+     * @return Set
      */
     public Set<String> listFonts(String src) {
         Set<String> set = new TreeSet<String>();
@@ -51,6 +52,7 @@ public class PDFFonts {
     /**
      * Create a Map containing information about the fonts available per page
      * @param src the path to a PDF file
+     * @return Map
      */
     public Map<String,Integer> listFontDistribution(String src) {
         Map<String,Integer> map = new TreeMap<String, Integer>();
@@ -84,7 +86,8 @@ public class PDFFonts {
     /**
      * Create a list containing information about which fonts are being used on what
      * page.
-     * @param src thr path to a PDF file
+     * @param src the path to a PDF file
+     * @return List
      */
     public List<Set<String>> listFontPerPage(String src) {
         List<Set<String>> list = new ArrayList<Set<String>>();
@@ -110,8 +113,8 @@ public class PDFFonts {
     /**
      * Extracts the font names from page or XObject resources.
      * @param set the set with the font names
-     * @param resources the resources dictionary
-     * @thorws IOException
+     * @param resource the resources dictionary
+     * @throws IOException in case of an IO error
      */
     public static void processResource(Set<String> set, PdfDictionary resource) throws IOException {
         if (resource == null)
