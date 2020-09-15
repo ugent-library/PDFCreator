@@ -1,7 +1,7 @@
 Name: pdfcreator
 Summary: UB Gent tools for manipulating PDF files
 License: apache
-Version: 1.0
+Version: 1.0.0
 Release: X
 BuildArch: noarch
 BuildRoot:  %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
