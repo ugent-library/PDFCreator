@@ -9,5 +9,9 @@ if [ -z "$PDFCREATOR_LIB" ]; then
 fi
 
 CP="$PDFCREATOR_BIN/PDFCreator.jar:$PDFCREATOR_LIB/itext-pdfa-5.4.1.jar:$PDFCREATOR_LIB/itext-xtra-5.4.1.jar:$PDFCREATOR_LIB/itextpdf-5.4.1.jar:$PDFCREATOR_LIB/java-getopt-1.0.13.jar"
+CP="${CP}:$PDFCREATOR_LIB/bcprov-jdk15on-1.48.jar"
+CP="${CP}:$PDFCREATOR_LIB/bcprov-ext-jdk15on-1.48.jar"
+CP="${CP}:$PDFCREATOR_LIB/bcpkix-jdk15on-1.48.jar"
+CP="${CP}:$PDFCREATOR_LIB/bcmail-jdk16-146.jar"
 
 java -cp "$CP" pdfcreator.PDFCreator $*
